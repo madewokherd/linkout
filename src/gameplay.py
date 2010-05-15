@@ -89,18 +89,38 @@ def draw(surface, state):
         draw_object(surface, state, obj)
 
 def run(screen, state):
+    width, height = screen.get_size()
+
     clock = pygame.time.Clock()
 
-    while 1:
-        clock.tick(50)
+    pygame.mouse.set_visible(0)
+    pygame.event.set_grab(True)
 
-        for event in pygame.event.get():
-            if event.type == pygame.QUIT or \
-                (event.type == pygame.KEYDOWN and event.key == pygame.K_ESCAPE):
-                return 0
+    try:
+        dx_rem = dy_rem = 0
 
-        state, requests = state.next_state()
+        while 1:
+            clock.tick(50)
 
-        draw(screen, state)
-        pygame.display.flip()
+            inputs = gamelogic.Inputs()
+
+            for event in pygame.event.get():
+                if event.type == pygame.QUIT or \
+                    (event.type == pygame.KEYDOWN and event.key == pygame.K_ESCAPE):
+                    return 0
+                elif event.type == pygame.MOUSEMOTION:
+                    dx, dy = event.rel
+                    inputs.dx += dx
+                    inputs.dy += dy
+
+            inputs.dx, dx_rem = divmod(inputs.dx * state.width + dx_rem, width)
+            inputs.dy, dy_rem = divmod(inputs.dy * state.height + dy_rem, height)
+
+            state, requests = state.next_state(inputs)
+
+            draw(screen, state)
+            pygame.display.flip()
+    finally:
+        pygame.event.set_grab(False)
+        pygame.mouse.set_visible(1)
 

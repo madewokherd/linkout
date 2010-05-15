@@ -29,6 +29,10 @@ RIGHT_EDGE = "RIGHT_EDGE"
 ABORT = "ABORT"
 BLOCK = "BLOCK"
 
+class Inputs(object):
+    dx = 0
+    dy = 0
+
 class Moveable(object):
     def __init__(self, x, y, width, height):
         self.x = x
@@ -107,7 +111,7 @@ class Ball(Moveable):
     def copy(self):
         return Ball(self.x, self.y, self.width, self.height, self.dx, self.dy)
 
-    def advance(self, state):
+    def advance(self, state, inputs):
         new_ball = self.copy()
 
         new_ball.move(state, self.dx, self.dy)
@@ -126,6 +130,24 @@ class Ball(Moveable):
             return ABORT
         elif oth == BOTTOM_EDGE:
             self.dy = -abs(self.dy)
+            return ABORT
+
+class Plunger(Moveable):
+    "Plunger will follow the mouse"
+
+    def copy(self):
+        return Plunger(self.x, self.y, self.width, self.height)
+
+    def advance(self, state, inputs):
+        new_plunger = self.copy()
+
+        new_plunger.move(state, inputs.dx, inputs.dy)
+
+        return (new_plunger,), ()
+
+    def collide(self, oth, state, dx, dy):
+        if oth in (LEFT_EDGE, RIGHT_EDGE, TOP_EDGE, BOTTOM_EDGE):
+            return BLOCK
 
 class State(object):
     "This object represents the state of the game at a frame."
@@ -140,14 +162,14 @@ class State(object):
 
         self.objects = []
 
-    def next_state(self):
+    def next_state(self, inputs):
         """Returns the state at the next frame and any control requests (sounds,
          quit, etc.)"""
         state = State()
         requests = []
 
         for obj in self.objects:
-            new_objs, new_reqs = obj.advance(self)
+            new_objs, new_reqs = obj.advance(self, inputs)
             state.objects.extend(new_objs)
             requests.extend(new_reqs)
 
