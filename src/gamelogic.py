@@ -65,9 +65,9 @@ class Moveable(object):
                obj.x <= newx < obj.x + obj.width and \
                max(self.y, obj.y) < min(self.y + self.height, obj.y + obj.height):
                 ret = self.collide(obj, LEFT, state, dx, dy)
+                obj.collide(self, RIGHT, state, 0, 0)
                 if ret:
                     return ret
-                obj.collide(self, RIGHT, state, 0, 0)
 
         self.x = newx
 
@@ -86,9 +86,9 @@ class Moveable(object):
                obj.x <= newedge < obj.x + obj.width and \
                max(self.y, obj.y) < min(self.y + self.height, obj.y + obj.height):
                 ret = self.collide(obj, RIGHT, state, dx, dy)
+                obj.collide(self, LEFT, state, 0, 0)
                 if ret:
                     return ret
-                obj.collide(self, LEFT, state, 0, 0)
 
         self.x = newx
 
@@ -106,9 +106,9 @@ class Moveable(object):
                obj.y <= newy < obj.y + obj.height and \
                max(self.x, obj.x) < min(self.x + self.width, obj.x + obj.width):
                 ret = self.collide(obj, UP, state, dx, dy)
+                obj.collide(self, DOWN, state, 0, 0)
                 if ret:
                     return ret
-                obj.collide(self, DOWN, state, 0, 0)
 
         self.y = newy
 
@@ -127,9 +127,9 @@ class Moveable(object):
                obj.y <= newedge < obj.y + obj.height and \
                max(self.x, obj.x) < min(self.x + self.width, obj.x + obj.width):
                 ret = self.collide(obj, DOWN, state, dx, dy)
+                obj.collide(self, UP, state, 0, 0)
                 if ret:
                     return ret
-                obj.collide(self, UP, state, 0, 0)
 
         self.y = newy
 
@@ -276,8 +276,6 @@ class Robot(Moveable):
     def collide(self, oth, direction, state, dx, dy):
         if isinstance(oth, Ball):
             self.dead = True
-        elif isinstance(oth, Plunger):
-            return
         return BLOCK
 
 class Generator(object):
