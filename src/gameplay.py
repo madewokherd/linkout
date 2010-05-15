@@ -137,17 +137,25 @@ def draw(surface, state):
     for obj in state.objects:
         draw_object(surface, state, obj)
 
+def draw_paused(surface):
+    if pygame.font:
+        font = pygame.font.Font(None, 48)
+        text = font.render("Paused", 1, (240, 240, 240))
+        textpos = text.get_rect(centerx=surface.get_width()/2, centery=surface.get_height()/2)
+        surface.blit(text, textpos)
+
 def run(screen, state):
     width, height = screen.get_size()
 
     clock = pygame.time.Clock()
 
-    pygame.mouse.set_visible(0)
+    pygame.mouse.set_visible(False)
     pygame.event.set_grab(True)
 
     try:
         dx_rem = dy_rem = 0
         buttons_pressed = set()
+        paused = False
 
         while 1:
             clock.tick(50)
@@ -155,9 +163,15 @@ def run(screen, state):
             inputs = gamelogic.Inputs()
 
             for event in pygame.event.get():
-                if event.type == pygame.QUIT or \
-                    (event.type == pygame.KEYDOWN and event.key == pygame.K_ESCAPE):
+                if event.type == pygame.QUIT:
                     return 0
+                elif event.type == pygame.KEYDOWN:
+                    if event.key == pygame.K_ESCAPE:
+                        return 0
+                    elif event.key in (pygame.K_PAUSE, pygame.K_p):
+                        paused = not paused
+                        pygame.mouse.set_visible(paused)
+                        pygame.event.set_grab(not paused)
                 elif event.type == pygame.MOUSEMOTION:
                     dx, dy = event.rel
                     inputs.dx += dx
@@ -171,11 +185,16 @@ def run(screen, state):
             inputs.dy, dy_rem = divmod(inputs.dy * state.height + dy_rem, height)
             inputs.buttons_pressed = buttons_pressed
 
-            requests = state.advance(inputs)
+            if not paused:
+                requests = state.advance(inputs)
 
             draw(screen, state)
+
+            if paused:
+                draw_paused(screen)
+
             pygame.display.flip()
     finally:
         pygame.event.set_grab(False)
-        pygame.mouse.set_visible(1)
+        pygame.mouse.set_visible(True)
 
