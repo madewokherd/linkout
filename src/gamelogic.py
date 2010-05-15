@@ -176,7 +176,7 @@ class Ball(Moveable):
         return ()
 
     def collide(self, oth, direction, state, dx, dy):
-        if oth in (LEFT_EDGE, RIGHT_EDGE, TOP_EDGE, BOTTOM_EDGE):
+        if oth in (LEFT_EDGE, RIGHT_EDGE, TOP_EDGE, BOTTOM_EDGE) or isinstance(oth, Robot):
             if direction == LEFT:
                 self.dx = abs(self.dx)
             elif direction == RIGHT:
@@ -185,7 +185,8 @@ class Ball(Moveable):
                 self.dy = abs(self.dy)
             elif direction == DOWN:
                 self.dy = -abs(self.dy)
-            return ABORT
+            if oth in (LEFT_EDGE, RIGHT_EDGE, TOP_EDGE, BOTTOM_EDGE):
+                return ABORT
         elif isinstance(oth, Plunger):
             speed = max(abs(self.dx), abs(self.dy))
             dx = (self.x + self.width/2) - (oth.x + oth.width/2)
