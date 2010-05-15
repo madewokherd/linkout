@@ -21,13 +21,111 @@
 # FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 # OTHER DEALINGS IN THE SOFTWARE.
 
-class Ball(object):
-    def __init__(self):
-        self.width = 8
-        self.height = 8
+TOP_EDGE = "TOP_EDGE"
+BOTTOM_EDGE = "BOTTOM_EDGE"
+LEFT_EDGE = "LEFT_EDGE"
+RIGHT_EDGE = "RIGHT_EDGE"
 
-        self.x = 0
-        self.y = 0
+ABORT = "ABORT"
+BLOCK = "BLOCK"
+
+class Moveable(object):
+    def __init__(self, x, y, width, height):
+        self.x = x
+        self.y = y
+
+        self.width = width
+        self.height = height
+
+    def move_left(self, state, dx, dy):
+        if self.x <= 0:
+            ret = self.collide(LEFT_EDGE, state, dx, dy)
+            if ret:
+                return ret
+
+        self.x = self.x - 1
+
+    def move_right(self, state, dx, dy):
+        if self.x + self.width >= state.width:
+            ret = self.collide(RIGHT_EDGE, state, dx, dy)
+            if ret:
+                return ret
+
+        self.x = self.x + 1
+
+    def move_up(self, state, dx, dy):
+        if self.y <= 0:
+            ret = self.collide(TOP_EDGE, state, dx, dy)
+            if ret:
+                return ret
+
+        self.y = self.y - 1
+
+    def move_down(self, state, dx, dy):
+        if self.y + self.height >= state.height:
+            ret = self.collide(BOTTOM_EDGE, state, dx, dy)
+            if ret:
+                return ret
+
+        self.y = self.y + 1
+
+    def move(self, state, dx, dy):
+        steps = max(abs(dx), abs(dy))
+
+        x = y = 0
+
+        for i in range(1, steps+1):
+            newx = dx * i / steps
+            step_dx = newx - x
+            if step_dx == -1:
+                if self.move_left(state, dx-x, dy-y) == ABORT:
+                    return
+            elif step_dx == 1:
+                if self.move_right(state, dx-x, dy-y) == ABORT:
+                    return
+            x = newx
+
+            newy = dy * i / steps
+            step_dy = newy - y
+            if step_dy == -1:
+                if self.move_up(state, dx-x, dy-y) == ABORT:
+                    return
+            elif step_dy == 1:
+                if self.move_down(state, dx-x, dy-y) == ABORT:
+                    return
+            y = newy
+
+    def collide(self, oth, state, dx, dy):
+        pass
+
+class Ball(Moveable):
+    def __init__(self, x=0, y=0, width=8, height=8, dx=2, dy=4):
+        Moveable.__init__(self, x, y, width, height)
+        self.dx = dx
+        self.dy = dy
+
+    def copy(self):
+        return Ball(self.x, self.y, self.width, self.height, self.dx, self.dy)
+
+    def advance(self, state):
+        new_ball = self.copy()
+
+        new_ball.move(state, self.dx, self.dy)
+
+        return (new_ball,), ()
+
+    def collide(self, oth, state, dx, dy):
+        if oth == LEFT_EDGE:
+            self.dx = abs(self.dx)
+            return ABORT
+        elif oth == RIGHT_EDGE:
+            self.dx = -abs(self.dx)
+            return ABORT
+        elif oth == TOP_EDGE:
+            self.dy = abs(self.dy)
+            return ABORT
+        elif oth == BOTTOM_EDGE:
+            self.dy = -abs(self.dy)
 
 class State(object):
     "This object represents the state of the game at a frame."
@@ -46,8 +144,12 @@ class State(object):
         """Returns the state at the next frame and any control requests (sounds,
          quit, etc.)"""
         state = State()
+        requests = []
 
-        state.objects = self.objects[:]
+        for obj in self.objects:
+            new_objs, new_reqs = obj.advance(self)
+            state.objects.extend(new_objs)
+            requests.extend(new_reqs)
 
-        return state, ()
+        return state, requests
 
