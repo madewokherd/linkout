@@ -51,6 +51,8 @@ def draw_plunger(surface, state, obj):
     top = height * obj.y / state.height
     bottom = height * (obj.y + obj.height) / state.height
 
+    rect = pygame.Rect(left, top, right-left, bottom-top)
+
     left_pt = (left, (top+bottom)/2)
     right_pt = (right, (top+bottom)/2)
     top_pt = ((left+right)/2, top)
@@ -84,6 +86,7 @@ def draw_plunger(surface, state, obj):
     pygame.draw.line(surface, color, tip, side2, thickness)
     pygame.draw.line(surface, color, side1, side2, thickness)
 
+    pygame.draw.rect(surface, pygame.Color(0, 64, 0), rect, thickness)
 
 object_draw_functions = {
     gamelogic.Ball: draw_ball,
