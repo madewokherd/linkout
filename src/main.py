@@ -32,7 +32,10 @@ def main(argv):
     pygame.init()
     screen = pygame.display.set_mode((512,480))
 
-    gameplay.run(screen, gamelogic.State())
+    state = gamelogic.State()
+    state.objects.append(gamelogic.Ball())
+
+    gameplay.run(screen, state)
 
 if __name__ == '__main__':
     sys.exit(main(sys.argv))

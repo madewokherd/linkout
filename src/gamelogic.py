@@ -21,6 +21,14 @@
 # FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 # OTHER DEALINGS IN THE SOFTWARE.
 
+class Ball(object):
+    def __init__(self):
+        self.width = 8
+        self.height = 8
+
+        self.x = 0
+        self.y = 0
+
 class State(object):
     "This object represents the state of the game at a frame."
 
@@ -32,8 +40,14 @@ class State(object):
         self.width = self.tilewidth * self.xtiles
         self.height = self.tileheight * self.ytiles
 
+        self.objects = []
+
     def next_state(self):
         """Returns the state at the next frame and any control requests (sounds,
          quit, etc.)"""
-        return State(), ()
+        state = State()
+
+        state.objects = self.objects[:]
+
+        return state, ()
 

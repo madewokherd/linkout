@@ -25,6 +25,27 @@ import pygame
 
 import gamelogic
 
+def draw_object(surface, state, obj):
+    width, height = surface.get_size()
+
+    color = pygame.Color(255, 0, 0)
+
+    left = width * obj.x / state.width
+    right = width * (obj.x + obj.width) / state.width
+    top = height * obj.y / state.height
+    bottom = height * (obj.y + obj.height) / state.height
+
+    thickness = width / state.width
+
+    pygame.draw.line(surface, color, (left, top), (right, top), thickness)
+    pygame.draw.line(surface, color, (left, bottom), (right, bottom), thickness)
+
+    pygame.draw.line(surface, color, (left, top), (left, bottom), thickness)
+    pygame.draw.line(surface, color, (right, top), (right, bottom), thickness)
+
+    pygame.draw.line(surface, color, (left, top), (right, bottom), thickness)
+    pygame.draw.line(surface, color, (left, bottom), (right, top), thickness)
+
 def draw(surface, state):
     width, height = surface.get_size()
 
@@ -36,6 +57,9 @@ def draw(surface, state):
         pygame.draw.line(surface, gridcolor, (width * i / state.xtiles, 0), (width * i / state.xtiles, height), (width / state.width))
     for i in range(state.ytiles):
         pygame.draw.line(surface, gridcolor, (0, height * i / state.ytiles), (width, height * i / state.ytiles), (height / state.height))
+
+    for obj in state.objects:
+        draw_object(surface, state, obj)
 
 def run(screen, state):
     clock = pygame.time.Clock()
