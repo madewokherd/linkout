@@ -23,17 +23,32 @@
 
 import pygame
 
-import sys
-
 import gamelogic
-import gameplay
 
-def main(argv):
-    pygame.init()
-    screen = pygame.display.set_mode((512,480))
+def draw(surface, state):
+    width, height = surface.get_size()
 
-    gameplay.run(screen, gamelogic.State())
+    surface.fill(pygame.Color(0, 0, 0))
 
-if __name__ == '__main__':
-    sys.exit(main(sys.argv))
+    # draw a grid background for now
+    gridcolor = pygame.Color(30, 30, 30)
+    for i in range(state.xtiles):
+        pygame.draw.line(surface, gridcolor, (width * i / state.xtiles, 0), (width * i / state.xtiles, height), (width / state.width))
+    for i in range(state.ytiles):
+        pygame.draw.line(surface, gridcolor, (0, height * i / state.ytiles), (width, height * i / state.ytiles), (height / state.height))
+
+def run(screen, state):
+    clock = pygame.time.Clock()
+
+    while 1:
+        clock.tick(50)
+
+        for event in pygame.event.get():
+            if event.type == pygame.QUIT:
+                return 0
+
+        state, requests = state.next_state()
+
+        draw(screen, state)
+        pygame.display.flip()
 

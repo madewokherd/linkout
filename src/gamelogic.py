@@ -21,19 +21,19 @@
 # FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 # OTHER DEALINGS IN THE SOFTWARE.
 
-import pygame
+class State(object):
+    "This object represents the state of the game at a frame."
 
-import sys
+    def __init__(self):
+        self.tilewidth = 16
+        self.tileheight = 16
+        self.xtiles = 16
+        self.ytiles = 15
+        self.width = self.tilewidth * self.xtiles
+        self.height = self.tileheight * self.ytiles
 
-import gamelogic
-import gameplay
-
-def main(argv):
-    pygame.init()
-    screen = pygame.display.set_mode((512,480))
-
-    gameplay.run(screen, gamelogic.State())
-
-if __name__ == '__main__':
-    sys.exit(main(sys.argv))
+    def next_state(self):
+        """Returns the state at the next frame and any control requests (sounds,
+         quit, etc.)"""
+        return State(), ()
 
