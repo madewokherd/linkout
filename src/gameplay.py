@@ -35,11 +35,16 @@ def draw_ball(surface, state, obj):
     top = height * obj.y / state.height
     bottom = height * (obj.y + obj.height) / state.height
 
-    rect = pygame.Rect(left, top, right-left, bottom-top)
-
     thickness = width / state.width
 
-    pygame.draw.ellipse(surface, color, rect, thickness)
+    top_pt = ((left+right)/2-thickness, top)
+    bottom_pt = ((left+right)/2-thickness, bottom)
+
+    pygame.draw.line(surface, color, top_pt, bottom_pt, thickness)
+
+    pygame.draw.ellipse(surface, color, pygame.Rect(left, top, (right-left)/2, (bottom-top)/2), thickness)
+
+    pygame.draw.ellipse(surface, color, pygame.Rect((left+right)/2, top, (right-left)/2, (bottom-top)/2), thickness)
 
 def draw_plunger(surface, state, obj):
     width, height = surface.get_size()
