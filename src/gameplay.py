@@ -147,6 +147,7 @@ def run(screen, state):
 
     try:
         dx_rem = dy_rem = 0
+        buttons_pressed = set()
 
         while 1:
             clock.tick(50)
@@ -161,9 +162,14 @@ def run(screen, state):
                     dx, dy = event.rel
                     inputs.dx += dx
                     inputs.dy += dy
+                elif event.type == pygame.MOUSEBUTTONDOWN:
+                    buttons_pressed.add(event.button)
+                elif event.type == pygame.MOUSEBUTTONUP:
+                    buttons_pressed.remove(event.button)
 
             inputs.dx, dx_rem = divmod(inputs.dx * state.width + dx_rem, width)
             inputs.dy, dy_rem = divmod(inputs.dy * state.height + dy_rem, height)
+            inputs.buttons_pressed = buttons_pressed
 
             requests = state.advance(inputs)
 

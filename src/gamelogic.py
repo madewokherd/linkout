@@ -41,6 +41,7 @@ ADD = "ADD"
 class Inputs(object):
     dx = 0
     dy = 0
+    buttons_pressed = ()
 
 class Moveable(object):
     def __init__(self, x, y, width, height):
@@ -174,6 +175,21 @@ class Ball(Moveable):
         return Ball(self.x, self.y, self.width, self.height, self.dx, self.dy)
 
     def advance(self, state, inputs):
+        if 1 in inputs.buttons_pressed:
+            for oth in state.objects:
+                if isinstance(oth, Plunger):
+                    speed = max(abs(self.dx), abs(self.dy))
+                    dx = (oth.x + oth.width/2) - (self.x + self.width/2)
+                    dy = (oth.y + oth.height/2) - (self.y + self.height/2)
+                    if 0 == dy == dx:
+                        pass
+                    elif abs(dx) > abs(dy):
+                        self.dx = speed * cmp(dx, 0)
+                        self.dy = (dy * speed // abs(dx))
+                    else:
+                        self.dy = speed * cmp(dy, 0)
+                        self.dx = (dx * speed // abs(dy))
+
         self.move(state, self.dx, self.dy)
 
         return ()
