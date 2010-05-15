@@ -154,6 +154,9 @@ class Moveable(object):
                     return
             y = newy
 
+    def moveto(self, state, x, y):
+        return self.move(state, x-self.x, y-self.y)
+
     def collide(self, oth, direction, state, dx, dy):
         pass
 
@@ -172,7 +175,7 @@ class Ball(Moveable):
         return ()
 
     def collide(self, oth, direction, state, dx, dy):
-        if oth in (LEFT_EDGE, RIGHT_EDGE, TOP_EDGE, BOTTOM_EDGE) or isinstance(oth, Plunger):
+        if oth in (LEFT_EDGE, RIGHT_EDGE, TOP_EDGE, BOTTOM_EDGE):
             if direction == LEFT:
                 self.dx = abs(self.dx)
             elif direction == RIGHT:
@@ -181,6 +184,19 @@ class Ball(Moveable):
                 self.dy = abs(self.dy)
             elif direction == DOWN:
                 self.dy = -abs(self.dy)
+            return ABORT
+        elif isinstance(oth, Plunger):
+            speed = max(abs(self.dx), abs(self.dy))
+            dx = (self.x + self.width/2) - (oth.x + oth.width/2)
+            dy = (self.y + self.height/2) - (oth.y + oth.height/2)
+            if 0 == dy == dx:
+                return
+            elif abs(dx) > abs(dy):
+                self.dx = speed * cmp(dx, 0)
+                self.dy = (dy * speed // abs(dx))
+            else:
+                self.dy = speed * cmp(dy, 0)
+                self.dx = (dx * speed // abs(dy))
             return ABORT
 
 class Plunger(Moveable):
