@@ -34,10 +34,9 @@ def main(argv):
 
     state = gamelogic.State()
     state.objects.append(gamelogic.Ball())
-    state.objects.append(gamelogic.Plunger(128, 0, 16, 16, gamelogic.UP))
-    state.objects.append(gamelogic.Robot(64, 64, 16, 16, 2))
-    state.objects.append(gamelogic.Robot(128, 128, 16, 16, 2))
-
+    #state.objects.append(gamelogic.Plunger(128, 0, 16, 16, gamelogic.UP))
+    state.objects.append(gamelogic.Generator(gamelogic.Plunger, 1, 16, 16, 16384, gamelogic.UP))
+    state.objects.append(gamelogic.Generator(gamelogic.Robot, 6, 16, 16, 16384, 1))
     gameplay.run(screen, state)
 
 if __name__ == '__main__':

@@ -94,25 +94,26 @@ object_draw_functions = {
     }
 
 def draw_unknown(surface, state, obj):
-    width, height = surface.get_size()
+    if isinstance(obj, gamelogic.Moveable):
+        width, height = surface.get_size()
 
-    color = pygame.Color(255, 0, 0)
+        color = pygame.Color(255, 0, 0)
 
-    left = width * obj.x / state.width
-    right = width * (obj.x + obj.width) / state.width
-    top = height * obj.y / state.height
-    bottom = height * (obj.y + obj.height) / state.height
+        left = width * obj.x / state.width
+        right = width * (obj.x + obj.width) / state.width
+        top = height * obj.y / state.height
+        bottom = height * (obj.y + obj.height) / state.height
 
-    thickness = width / state.width
+        thickness = width / state.width
 
-    pygame.draw.line(surface, color, (left, top), (right, top), thickness)
-    pygame.draw.line(surface, color, (left, bottom), (right, bottom), thickness)
+        pygame.draw.line(surface, color, (left, top), (right, top), thickness)
+        pygame.draw.line(surface, color, (left, bottom), (right, bottom), thickness)
 
-    pygame.draw.line(surface, color, (left, top), (left, bottom), thickness)
-    pygame.draw.line(surface, color, (right, top), (right, bottom), thickness)
+        pygame.draw.line(surface, color, (left, top), (left, bottom), thickness)
+        pygame.draw.line(surface, color, (right, top), (right, bottom), thickness)
 
-    pygame.draw.line(surface, color, (left, top), (right, bottom), thickness)
-    pygame.draw.line(surface, color, (left, bottom), (right, top), thickness)
+        pygame.draw.line(surface, color, (left, top), (right, bottom), thickness)
+        pygame.draw.line(surface, color, (left, bottom), (right, top), thickness)
 
 def draw_object(surface, state, obj):
     try:

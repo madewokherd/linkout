@@ -21,6 +21,8 @@
 # FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 # OTHER DEALINGS IN THE SOFTWARE.
 
+import random
+
 TOP_EDGE = "TOP_EDGE"
 BOTTOM_EDGE = "BOTTOM_EDGE"
 LEFT_EDGE = "LEFT_EDGE"
@@ -34,6 +36,7 @@ DOWN = "DOWN"
 ABORT = "ABORT"
 BLOCK = "BLOCK"
 DELETE = "DELETE"
+ADD = "ADD"
 
 class Inputs(object):
     dx = 0
@@ -259,6 +262,38 @@ class Robot(Moveable):
             self.dead = True
         return BLOCK
 
+class Generator(object):
+    "Spawns objects when there are fewer than N on the screen"
+
+    def __init__(self, obj_type, max_objects, width, height, min_distance_sq, *args):
+        self.obj_type = obj_type
+        self.max_objects = max_objects
+        self.width = width
+        self.height = height
+        self.min_distance_sq = min_distance_sq
+        self.args = args
+
+    def advance(self, state, inputs):
+        count = 0
+
+        for obj in state.objects:
+            if isinstance(obj, self.obj_type):
+                count += 1
+
+        if count < self.max_objects:
+            x = state.random.randint(0, state.width - self.width)
+            y = state.random.randint(0, state.height - self.height)
+
+            for obj in state.objects:
+                if isinstance(obj, Moveable) and \
+                    (((x + self.width/2) - (obj.x + obj.width/2))**2 +
+                     ((y + self.height/2) - (obj.y + obj.height/2))**2) < self.min_distance_sq:
+                    return ()
+
+            return ((ADD, self.obj_type(x, y, self.width, self.height, *self.args)),)
+
+        return ()
+
 class State(object):
     "This object represents the state of the game at a frame."
 
@@ -272,19 +307,29 @@ class State(object):
 
         self.objects = []
 
+        self.random = random.Random()
+        self.random.seed()
+
     def advance(self, inputs):
         """Returns the state at the next frame and any control requests (sounds,
          quit, etc.)"""
         to_delete = []
+        to_add = []
 
         for obj in self.objects:
             reqs = obj.advance(self, inputs)
             for i in reqs:
                 if i == DELETE:
                     to_delete.append(obj)
+                elif isinstance(i, tuple):
+                    if i[0] == ADD:
+                        to_add.append(i[1])
 
         for obj in to_delete:
             self.objects.remove(obj)
+
+        for obj in to_add:
+            self.objects.append(obj)
 
         return ()
 
