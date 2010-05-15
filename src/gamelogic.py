@@ -218,6 +218,33 @@ class Plunger(Moveable):
         if oth in (LEFT_EDGE, RIGHT_EDGE, TOP_EDGE, BOTTOM_EDGE):
             return BLOCK
 
+class Robot(Moveable):
+    "Robot will move towards the plunger"
+
+    def __init__(self, x, y, width, height, speed):
+        Moveable.__init__(self, x, y, width, height)
+        self.speed = speed
+
+    def copy(self):
+        return Robot(self.x, self.y, self.width, self.height, speed)
+
+    def advance(self, state, inputs):
+        for obj in state.objects:
+            if isinstance(obj, Plunger):
+                dx = (obj.x + obj.width/2) - (self.x + self.width/2)
+                dy = (obj.y + obj.height/2) - (self.y + self.height/2)
+                if 0 == dy == dx:
+                    return
+                elif abs(dx) > abs(dy):
+                    self.move(state, self.speed * cmp(dx, 0), 0)
+                else:
+                    self.move(state, 0, self.speed * cmp(dy, 0))
+
+        return ()
+
+    def collide(self, oth, direction, state, dx, dy):
+        return BLOCK
+
 class State(object):
     "This object represents the state of the game at a frame."
 
