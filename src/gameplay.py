@@ -25,7 +25,27 @@ import pygame
 
 import gamelogic
 
-def draw_object(surface, state, obj):
+def draw_ball(surface, state, obj):
+    width, height = surface.get_size()
+
+    color = pygame.Color(255, 127, 0)
+
+    left = width * obj.x / state.width
+    right = width * (obj.x + obj.width) / state.width
+    top = height * obj.y / state.height
+    bottom = height * (obj.y + obj.height) / state.height
+
+    rect = pygame.Rect(left, top, right-left, bottom-top)
+
+    thickness = width / state.width
+
+    pygame.draw.ellipse(surface, color, rect, thickness)
+
+object_draw_functions = {
+    gamelogic.Ball: draw_ball,
+    }
+
+def draw_unknown(surface, state, obj):
     width, height = surface.get_size()
 
     color = pygame.Color(255, 0, 0)
@@ -45,6 +65,13 @@ def draw_object(surface, state, obj):
 
     pygame.draw.line(surface, color, (left, top), (right, bottom), thickness)
     pygame.draw.line(surface, color, (left, bottom), (right, top), thickness)
+
+def draw_object(surface, state, obj):
+    try:
+        f = object_draw_functions[type(obj)]
+    except KeyError:
+        f = draw_unknown
+    f(surface, state, obj)
 
 def draw(surface, state):
     width, height = surface.get_size()
