@@ -34,7 +34,7 @@ def main(argv):
 
     state = gamelogic.State()
     state.objects.append(gamelogic.Ball())
-    state.objects.append(gamelogic.Plunger(32, 32, 16, 16, gamelogic.UP))
+    state.objects.append(gamelogic.Plunger(128, 0, 16, 16, gamelogic.UP))
     state.objects.append(gamelogic.Robot(64, 64, 16, 16, 2))
     state.objects.append(gamelogic.Robot(128, 128, 16, 16, 2))
 

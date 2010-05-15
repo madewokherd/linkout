@@ -206,6 +206,7 @@ class Plunger(Moveable):
     def __init__(self, x, y, width, height, direction):
         Moveable.__init__(self, x, y, width, height)
         self.direction = direction
+        self.dead = False
 
     def copy(self):
         return Plunger(self.x, self.y, self.width, self.height, direction)
@@ -213,11 +214,16 @@ class Plunger(Moveable):
     def advance(self, state, inputs):
         self.move(state, inputs.dx, inputs.dy)
 
-        return ()
+        if self.dead:
+            return (DELETE,)
+        else:
+            return ()
 
     def collide(self, oth, direction, state, dx, dy):
         if oth in (LEFT_EDGE, RIGHT_EDGE, TOP_EDGE, BOTTOM_EDGE):
             return BLOCK
+        if isinstance(oth, Robot):
+            self.dead = True
 
 class Robot(Moveable):
     "Robot will move towards the plunger"
