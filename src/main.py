@@ -30,7 +30,7 @@ import gameplay
 
 def main(argv):
     pygame.init()
-    screen = pygame.display.set_mode((512,480))
+    screen = pygame.display.set_mode((602,480))
 
     state = gamelogic.State()
     state.objects.append(gamelogic.Ball())
