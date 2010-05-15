@@ -33,6 +33,7 @@ DOWN = "DOWN"
 
 ABORT = "ABORT"
 BLOCK = "BLOCK"
+DELETE = "DELETE"
 
 class Inputs(object):
     dx = 0
@@ -224,6 +225,7 @@ class Robot(Moveable):
     def __init__(self, x, y, width, height, speed):
         Moveable.__init__(self, x, y, width, height)
         self.speed = speed
+        self.dead = False
 
     def copy(self):
         return Robot(self.x, self.y, self.width, self.height, speed)
@@ -240,9 +242,14 @@ class Robot(Moveable):
                 else:
                     self.move(state, 0, self.speed * cmp(dy, 0))
 
-        return ()
+        if self.dead:
+            return (DELETE,)
+        else:
+            return ()
 
     def collide(self, oth, direction, state, dx, dy):
+        if isinstance(oth, Ball):
+            self.dead = True
         return BLOCK
 
 class State(object):
@@ -261,8 +268,16 @@ class State(object):
     def advance(self, inputs):
         """Returns the state at the next frame and any control requests (sounds,
          quit, etc.)"""
+        to_delete = []
+
         for obj in self.objects:
             reqs = obj.advance(self, inputs)
+            for i in reqs:
+                if i == DELETE:
+                    to_delete.append(obj)
+
+        for obj in to_delete:
+            self.objects.remove(obj)
 
         return ()
 
