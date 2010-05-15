@@ -41,8 +41,53 @@ def draw_ball(surface, state, obj):
 
     pygame.draw.ellipse(surface, color, rect, thickness)
 
+def draw_plunger(surface, state, obj):
+    width, height = surface.get_size()
+
+    color = pygame.Color(0, 196, 0)
+
+    left = width * obj.x / state.width
+    right = width * (obj.x + obj.width) / state.width
+    top = height * obj.y / state.height
+    bottom = height * (obj.y + obj.height) / state.height
+
+    left_pt = (left, (top+bottom)/2)
+    right_pt = (right, (top+bottom)/2)
+    top_pt = ((left+right)/2, top)
+    bottom_pt = ((left+right)/2, bottom)
+
+    if obj.direction == gamelogic.UP:
+        tip = top_pt
+        back = bottom_pt
+        side1 = left_pt
+        side2 = right_pt
+    elif obj.direction == gamelogic.DOWN:
+        tip = bottom_pt
+        back = up_pt
+        side1 = left_pt
+        side2 = right_pt
+    elif obj.direction == gamelogic.LEFT:
+        tip = left_pt
+        back = right_pt
+        side1 = top_pt
+        side2 = bottom_pt
+    elif obj.direction == gamelogic.DOWN:
+        tip = right_pt
+        back = left_pt
+        side1 = top_pt
+        side2 = bottom_pt
+
+    thickness = width / state.width
+
+    pygame.draw.line(surface, color, tip, back, thickness)
+    pygame.draw.line(surface, color, tip, side1, thickness)
+    pygame.draw.line(surface, color, tip, side2, thickness)
+    pygame.draw.line(surface, color, side1, side2, thickness)
+
+
 object_draw_functions = {
     gamelogic.Ball: draw_ball,
+    gamelogic.Plunger: draw_plunger,
     }
 
 def draw_unknown(surface, state, obj):

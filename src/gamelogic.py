@@ -186,8 +186,12 @@ class Ball(Moveable):
 class Plunger(Moveable):
     "Plunger will follow the mouse"
 
+    def __init__(self, x, y, width, height, direction):
+        Moveable.__init__(self, x, y, width, height)
+        self.direction = direction
+
     def copy(self):
-        return Plunger(self.x, self.y, self.width, self.height)
+        return Plunger(self.x, self.y, self.width, self.height, direction)
 
     def advance(self, state, inputs):
         self.move(state, inputs.dx, inputs.dy)
