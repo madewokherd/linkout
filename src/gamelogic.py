@@ -26,6 +26,11 @@ BOTTOM_EDGE = "BOTTOM_EDGE"
 LEFT_EDGE = "LEFT_EDGE"
 RIGHT_EDGE = "RIGHT_EDGE"
 
+UP = "UP"
+LEFT = "LEFT"
+RIGHT = "RIGHT"
+DOWN = "DOWN"
+
 ABORT = "ABORT"
 BLOCK = "BLOCK"
 
@@ -43,7 +48,7 @@ class Moveable(object):
 
     def move_left(self, state, dx, dy):
         if self.x <= 0:
-            ret = self.collide(LEFT_EDGE, state, dx, dy)
+            ret = self.collide(LEFT_EDGE, LEFT, state, dx, dy)
             if ret:
                 return ret
 
@@ -51,7 +56,7 @@ class Moveable(object):
 
     def move_right(self, state, dx, dy):
         if self.x + self.width >= state.width:
-            ret = self.collide(RIGHT_EDGE, state, dx, dy)
+            ret = self.collide(RIGHT_EDGE, RIGHT, state, dx, dy)
             if ret:
                 return ret
 
@@ -59,7 +64,7 @@ class Moveable(object):
 
     def move_up(self, state, dx, dy):
         if self.y <= 0:
-            ret = self.collide(TOP_EDGE, state, dx, dy)
+            ret = self.collide(TOP_EDGE, UP, state, dx, dy)
             if ret:
                 return ret
 
@@ -67,7 +72,7 @@ class Moveable(object):
 
     def move_down(self, state, dx, dy):
         if self.y + self.height >= state.height:
-            ret = self.collide(BOTTOM_EDGE, state, dx, dy)
+            ret = self.collide(BOTTOM_EDGE, DOWN, state, dx, dy)
             if ret:
                 return ret
 
@@ -99,7 +104,7 @@ class Moveable(object):
                     return
             y = newy
 
-    def collide(self, oth, state, dx, dy):
+    def collide(self, oth, direction, state, dx, dy):
         pass
 
 class Ball(Moveable):
@@ -118,18 +123,16 @@ class Ball(Moveable):
 
         return (new_ball,), ()
 
-    def collide(self, oth, state, dx, dy):
-        if oth == LEFT_EDGE:
-            self.dx = abs(self.dx)
-            return ABORT
-        elif oth == RIGHT_EDGE:
-            self.dx = -abs(self.dx)
-            return ABORT
-        elif oth == TOP_EDGE:
-            self.dy = abs(self.dy)
-            return ABORT
-        elif oth == BOTTOM_EDGE:
-            self.dy = -abs(self.dy)
+    def collide(self, oth, direction, state, dx, dy):
+        if oth in (LEFT_EDGE, RIGHT_EDGE, TOP_EDGE, BOTTOM_EDGE):
+            if direction == LEFT:
+                self.dx = abs(self.dx)
+            elif direction == RIGHT:
+                self.dx = -abs(self.dx)
+            elif direction == UP:
+                self.dy = abs(self.dy)
+            elif direction == DOWN:
+                self.dy = -abs(self.dy)
             return ABORT
 
 class Plunger(Moveable):
@@ -145,7 +148,7 @@ class Plunger(Moveable):
 
         return (new_plunger,), ()
 
-    def collide(self, oth, state, dx, dy):
+    def collide(self, oth, direction, state, dx, dy):
         if oth in (LEFT_EDGE, RIGHT_EDGE, TOP_EDGE, BOTTOM_EDGE):
             return BLOCK
 
