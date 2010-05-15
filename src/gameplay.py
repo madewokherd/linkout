@@ -116,7 +116,7 @@ def run(screen, state):
             inputs.dx, dx_rem = divmod(inputs.dx * state.width + dx_rem, width)
             inputs.dy, dy_rem = divmod(inputs.dy * state.height + dy_rem, height)
 
-            state, requests = state.next_state(inputs)
+            requests = state.advance(inputs)
 
             draw(screen, state)
             pygame.display.flip()

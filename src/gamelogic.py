@@ -117,11 +117,9 @@ class Ball(Moveable):
         return Ball(self.x, self.y, self.width, self.height, self.dx, self.dy)
 
     def advance(self, state, inputs):
-        new_ball = self.copy()
+        self.move(state, self.dx, self.dy)
 
-        new_ball.move(state, self.dx, self.dy)
-
-        return (new_ball,), ()
+        return ()
 
     def collide(self, oth, direction, state, dx, dy):
         if oth in (LEFT_EDGE, RIGHT_EDGE, TOP_EDGE, BOTTOM_EDGE):
@@ -142,11 +140,9 @@ class Plunger(Moveable):
         return Plunger(self.x, self.y, self.width, self.height)
 
     def advance(self, state, inputs):
-        new_plunger = self.copy()
+        self.move(state, inputs.dx, inputs.dy)
 
-        new_plunger.move(state, inputs.dx, inputs.dy)
-
-        return (new_plunger,), ()
+        return ()
 
     def collide(self, oth, direction, state, dx, dy):
         if oth in (LEFT_EDGE, RIGHT_EDGE, TOP_EDGE, BOTTOM_EDGE):
@@ -165,16 +161,11 @@ class State(object):
 
         self.objects = []
 
-    def next_state(self, inputs):
+    def advance(self, inputs):
         """Returns the state at the next frame and any control requests (sounds,
          quit, etc.)"""
-        state = State()
-        requests = []
-
         for obj in self.objects:
-            new_objs, new_reqs = obj.advance(self, inputs)
-            state.objects.extend(new_objs)
-            requests.extend(new_reqs)
+            reqs = obj.advance(self, inputs)
 
-        return state, requests
+        return ()
 
