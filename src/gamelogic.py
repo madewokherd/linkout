@@ -260,6 +260,8 @@ class Robot(Moveable):
     def collide(self, oth, direction, state, dx, dy):
         if isinstance(oth, Ball):
             self.dead = True
+        elif isinstance(oth, Plunger):
+            return
         return BLOCK
 
 class Generator(object):
