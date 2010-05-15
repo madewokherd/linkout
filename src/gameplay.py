@@ -95,7 +95,8 @@ def run(screen, state):
         clock.tick(50)
 
         for event in pygame.event.get():
-            if event.type == pygame.QUIT:
+            if event.type == pygame.QUIT or \
+                (event.type == pygame.KEYDOWN and event.key == pygame.K_ESCAPE):
                 return 0
 
         state, requests = state.next_state()
