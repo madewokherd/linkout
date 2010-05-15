@@ -47,36 +47,86 @@ class Moveable(object):
         self.height = height
 
     def move_left(self, state, dx, dy):
-        if self.x <= 0:
+        newx = self.x - 1
+
+        if newx < 0:
             ret = self.collide(LEFT_EDGE, LEFT, state, dx, dy)
             if ret:
                 return ret
 
-        self.x = self.x - 1
+        for obj in state.objects:
+            if obj is not self and \
+               isinstance(obj, Moveable) and \
+               obj.x <= newx < obj.x + obj.width and \
+               max(self.y, obj.y) < min(self.y + self.height, obj.y + obj.height):
+                ret = self.collide(obj, LEFT, state, dx, dy)
+                if ret:
+                    return ret
+                obj.collide(self, RIGHT, state, 0, 0)
+
+        self.x = newx
 
     def move_right(self, state, dx, dy):
-        if self.x + self.width >= state.width:
+        newx = self.x + 1
+        newedge = newx + self.width
+
+        if newedge >= state.width:
             ret = self.collide(RIGHT_EDGE, RIGHT, state, dx, dy)
             if ret:
                 return ret
 
-        self.x = self.x + 1
+        for obj in state.objects:
+            if obj is not self and \
+               isinstance(obj, Moveable) and \
+               obj.x <= newedge < obj.x + obj.width and \
+               max(self.y, obj.y) < min(self.y + self.height, obj.y + obj.height):
+                ret = self.collide(obj, RIGHT, state, dx, dy)
+                if ret:
+                    return ret
+                obj.collide(self, LEFT, state, 0, 0)
+
+        self.x = newx
 
     def move_up(self, state, dx, dy):
-        if self.y <= 0:
+        newy = self.y - 1
+
+        if newy < 0:
             ret = self.collide(TOP_EDGE, UP, state, dx, dy)
             if ret:
                 return ret
 
-        self.y = self.y - 1
+        for obj in state.objects:
+            if obj is not self and \
+               isinstance(obj, Moveable) and \
+               obj.y <= newy < obj.y + obj.height and \
+               max(self.x, obj.x) < min(self.x + self.width, obj.x + obj.width):
+                ret = self.collide(obj, UP, state, dx, dy)
+                if ret:
+                    return ret
+                obj.collide(self, DOWN, state, 0, 0)
+
+        self.y = newy
 
     def move_down(self, state, dx, dy):
-        if self.y + self.height >= state.height:
+        newy = self.y + 1
+        newedge = newy + self.height
+
+        if newedge >= state.height:
             ret = self.collide(BOTTOM_EDGE, DOWN, state, dx, dy)
             if ret:
                 return ret
 
-        self.y = self.y + 1
+        for obj in state.objects:
+            if obj is not self and \
+               isinstance(obj, Moveable) and \
+               obj.y <= newedge < obj.y + obj.height and \
+               max(self.x, obj.x) < min(self.x + self.width, obj.x + obj.width):
+                ret = self.collide(obj, DOWN, state, dx, dy)
+                if ret:
+                    return ret
+                obj.collide(self, UP, state, 0, 0)
+
+        self.y = newy
 
     def move(self, state, dx, dy):
         steps = max(abs(dx), abs(dy))
@@ -122,7 +172,7 @@ class Ball(Moveable):
         return ()
 
     def collide(self, oth, direction, state, dx, dy):
-        if oth in (LEFT_EDGE, RIGHT_EDGE, TOP_EDGE, BOTTOM_EDGE):
+        if oth in (LEFT_EDGE, RIGHT_EDGE, TOP_EDGE, BOTTOM_EDGE) or isinstance(oth, Plunger):
             if direction == LEFT:
                 self.dx = abs(self.dx)
             elif direction == RIGHT:
