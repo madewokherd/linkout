@@ -178,6 +178,23 @@ class Moveable(GameObject):
     def moveto(self, state, x, y):
         return self.move(state, x-self.x, y-self.y)
 
+    def distance_to_touch(self, oth):
+        if self.x + self.width < oth.x:
+            dx = oth.x - self.x - self.width
+        elif self.x > oth.x + oth.width:
+            dx = oth.x + oth.width - self.x
+        else:
+            dx = 0
+
+        if self.y + self.height < oth.y:
+            dy = oth.y - self.y - self.height
+        elif self.y > oth.y + oth.height:
+            dy = oth.y + oth.height - self.y
+        else:
+            dy = 0
+
+        return dx, dy
+
     def collide(self, oth, direction, state, dx, dy):
         pass
 
@@ -195,34 +212,45 @@ class Ball(Moveable):
             for oth in state.objects:
                 if isinstance(oth, Plunger):
                     speed = max(abs(self.dx), abs(self.dy))
-                    dx = (oth.x + oth.width/2) - (self.x + self.width/2)
-                    dy = (oth.y + oth.height/2) - (self.y + self.height/2)
+                    dx, dy = self.distance_to_touch(oth)
                     if 0 == dy == dx:
-                        pass
+                        self.move_away_from(oth)
+                        return ()
                     elif abs(dx) > abs(dy):
-                        self.dx = speed * cmp(dx, 0)
-                        self.dy = (dy * speed // abs(dx))
+                        speed = min(speed, abs(dx))
+                        newdx = speed * cmp(dx, 0)
+                        newdy = (dy * speed // abs(dx))
                     else:
-                        self.dy = speed * cmp(dy, 0)
-                        self.dx = (dx * speed // abs(dy))
+                        speed = min(speed, abs(dy))
+                        newdy = speed * cmp(dy, 0)
+                        newdx = (dx * speed // abs(dy))
+                    if speed != max(abs(self.dx), abs(self.dy)):
+                        self.move(state, newdx, newdy)
+                        return ()
+                    else:
+                        self.dx = newdx
+                        self.dy = newdy
 
         self.move(state, self.dx, self.dy)
 
         return ()
 
+    def move_away_from(self, oth):
+        speed = max(abs(self.dx), abs(self.dy))
+        dx = (self.x + self.width/2) - (oth.x + oth.width/2)
+        dy = (self.y + self.height/2) - (oth.y + oth.height/2)
+        if 0 == dy == dx:
+            return
+        elif abs(dx) > abs(dy):
+            self.dx = speed * cmp(dx, 0)
+            self.dy = (dy * speed // abs(dx))
+        else:
+            self.dy = speed * cmp(dy, 0)
+            self.dx = (dx * speed // abs(dy))
+
     def collide(self, oth, direction, state, dx, dy):
         if isinstance(oth, Plunger):
-            speed = max(abs(self.dx), abs(self.dy))
-            dx = (self.x + self.width/2) - (oth.x + oth.width/2)
-            dy = (self.y + self.height/2) - (oth.y + oth.height/2)
-            if 0 == dy == dx:
-                return
-            elif abs(dx) > abs(dy):
-                self.dx = speed * cmp(dx, 0)
-                self.dy = (dy * speed // abs(dx))
-            else:
-                self.dy = speed * cmp(dy, 0)
-                self.dx = (dx * speed // abs(dy))
+            self.move_away_from(oth)
             return ABORT
         elif oth.solid:
             if direction == LEFT:
@@ -271,14 +299,13 @@ class Robot(Moveable):
     def advance(self, state, inputs):
         for obj in state.objects:
             if isinstance(obj, Plunger):
-                dx = (obj.x + obj.width/2) - (self.x + self.width/2)
-                dy = (obj.y + obj.height/2) - (self.y + self.height/2)
+                dx, dy = self.distance_to_touch(obj)
                 if 0 == dy == dx:
-                    return
+                    return ()
                 elif abs(dx) > abs(dy):
-                    self.move(state, self.speed * cmp(dx, 0), 0)
+                    self.move(state, min(self.speed, abs(dx)) * cmp(dx, 0), 0)
                 else:
-                    self.move(state, 0, self.speed * cmp(dy, 0))
+                    self.move(state, 0, min(self.speed, abs(dy)) * cmp(dy, 0))
 
         return ()
 
@@ -288,7 +315,7 @@ class Robot(Moveable):
         if self.deadly and isinstance(oth, Plunger):
             oth.kill()
         if oth.solid:
-            return BLOCK
+            return ABORT
 
 class Generator(GameObject):
     "Spawns objects when there are fewer than N on the screen"
