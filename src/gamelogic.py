@@ -43,6 +43,9 @@ class GameObject(object):
     dead = False        # True if this object should be removed before the next frame
     solid = False       # True if this object gets in the way of moving objects
 
+    def kill(self):
+        self.dead = True
+
 class ScreenEdge(GameObject):
     solid = True
 
@@ -252,16 +255,15 @@ class Plunger(Moveable):
     def collide(self, oth, direction, state, dx, dy):
         if oth.solid:
             return BLOCK
-        if isinstance(oth, Robot):
-            self.dead = True
 
 class Robot(Moveable):
     "Robot will move towards the plunger"
     solid = True
 
-    def __init__(self, x, y, width, height, speed):
+    def __init__(self, x, y, width, height, speed, deadly=True):
         Moveable.__init__(self, x, y, width, height)
         self.speed = speed
+        self.deadly = deadly
 
     def copy(self):
         return Robot(self.x, self.y, self.width, self.height, speed)
@@ -282,11 +284,13 @@ class Robot(Moveable):
 
     def collide(self, oth, direction, state, dx, dy):
         if isinstance(oth, Ball):
-            self.dead = True
+            self.kill()
+        if self.deadly and isinstance(oth, Plunger):
+            oth.kill()
         if oth.solid:
             return BLOCK
 
-class Generator(object):
+class Generator(GameObject):
     "Spawns objects when there are fewer than N on the screen"
 
     def __init__(self, obj_type, max_objects, width, height, min_distance_sq, *args):
