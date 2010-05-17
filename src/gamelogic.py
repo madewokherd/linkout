@@ -23,11 +23,6 @@
 
 import random
 
-TOP_EDGE = "TOP_EDGE"
-BOTTOM_EDGE = "BOTTOM_EDGE"
-LEFT_EDGE = "LEFT_EDGE"
-RIGHT_EDGE = "RIGHT_EDGE"
-
 UP = "UP"
 LEFT = "LEFT"
 RIGHT = "RIGHT"
@@ -42,6 +37,15 @@ class Inputs(object):
     dx = 0
     dy = 0
     buttons_pressed = ()
+
+class ScreenEdge(object):
+    def __init__(self, name):
+	self.name = name
+
+TOP_EDGE = ScreenEdge("TOP")
+BOTTOM_EDGE = ScreenEdge("BOTTOM")
+LEFT_EDGE = ScreenEdge("LEFT")
+RIGHT_EDGE = ScreenEdge("RIGHT")
 
 class Moveable(object):
     def __init__(self, x, y, width, height):
@@ -195,7 +199,7 @@ class Ball(Moveable):
         return ()
 
     def collide(self, oth, direction, state, dx, dy):
-        if oth in (LEFT_EDGE, RIGHT_EDGE, TOP_EDGE, BOTTOM_EDGE) or isinstance(oth, Robot):
+        if isinstance(oth, ScreenEdge) or isinstance(oth, Robot):
             if direction == LEFT:
                 self.dx = abs(self.dx)
             elif direction == RIGHT:
@@ -204,7 +208,7 @@ class Ball(Moveable):
                 self.dy = abs(self.dy)
             elif direction == DOWN:
                 self.dy = -abs(self.dy)
-            if oth in (LEFT_EDGE, RIGHT_EDGE, TOP_EDGE, BOTTOM_EDGE):
+            if isinstance(oth, ScreenEdge):
                 return ABORT
         elif isinstance(oth, Plunger):
             speed = max(abs(self.dx), abs(self.dy))
@@ -240,7 +244,7 @@ class Plunger(Moveable):
             return ()
 
     def collide(self, oth, direction, state, dx, dy):
-        if oth in (LEFT_EDGE, RIGHT_EDGE, TOP_EDGE, BOTTOM_EDGE):
+        if isinstance(oth, ScreenEdge):
             return BLOCK
         if isinstance(oth, Robot):
             self.dead = True
