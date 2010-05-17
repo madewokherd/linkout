@@ -38,16 +38,25 @@ class Inputs(object):
     dy = 0
     buttons_pressed = ()
 
-class ScreenEdge(object):
+class GameObject(object):
+    physical = False    # True if this object has a location in space
+    dead = False        # True if this object should be removed before the next frame
+    solid = False       # True if this object gets in the way of moving objects
+
+class ScreenEdge(GameObject):
+    solid = True
+
     def __init__(self, name):
-	self.name = name
+        self.name = name
 
 TOP_EDGE = ScreenEdge("TOP")
 BOTTOM_EDGE = ScreenEdge("BOTTOM")
 LEFT_EDGE = ScreenEdge("LEFT")
 RIGHT_EDGE = ScreenEdge("RIGHT")
 
-class Moveable(object):
+class Moveable(GameObject):
+    physical = True
+
     def __init__(self, x, y, width, height):
         self.x = x
         self.y = y
@@ -199,18 +208,7 @@ class Ball(Moveable):
         return ()
 
     def collide(self, oth, direction, state, dx, dy):
-        if isinstance(oth, ScreenEdge) or isinstance(oth, Robot):
-            if direction == LEFT:
-                self.dx = abs(self.dx)
-            elif direction == RIGHT:
-                self.dx = -abs(self.dx)
-            elif direction == UP:
-                self.dy = abs(self.dy)
-            elif direction == DOWN:
-                self.dy = -abs(self.dy)
-            if isinstance(oth, ScreenEdge):
-                return ABORT
-        elif isinstance(oth, Plunger):
+        if isinstance(oth, Plunger):
             speed = max(abs(self.dx), abs(self.dy))
             dx = (self.x + self.width/2) - (oth.x + oth.width/2)
             dy = (self.y + self.height/2) - (oth.y + oth.height/2)
@@ -223,14 +221,25 @@ class Ball(Moveable):
                 self.dy = speed * cmp(dy, 0)
                 self.dx = (dx * speed // abs(dy))
             return ABORT
+        elif oth.solid:
+            if direction == LEFT:
+                self.dx = abs(self.dx)
+            elif direction == RIGHT:
+                self.dx = -abs(self.dx)
+            elif direction == UP:
+                self.dy = abs(self.dy)
+            elif direction == DOWN:
+                self.dy = -abs(self.dy)
+            if isinstance(oth, ScreenEdge):
+                return ABORT
 
 class Plunger(Moveable):
     "Plunger will follow the mouse"
+    solid = True
 
     def __init__(self, x, y, width, height, direction):
         Moveable.__init__(self, x, y, width, height)
         self.direction = direction
-        self.dead = False
 
     def copy(self):
         return Plunger(self.x, self.y, self.width, self.height, direction)
@@ -238,24 +247,21 @@ class Plunger(Moveable):
     def advance(self, state, inputs):
         self.move(state, inputs.dx, inputs.dy)
 
-        if self.dead:
-            return (DELETE,)
-        else:
-            return ()
+        return ()
 
     def collide(self, oth, direction, state, dx, dy):
-        if isinstance(oth, ScreenEdge):
+        if oth.solid:
             return BLOCK
         if isinstance(oth, Robot):
             self.dead = True
 
 class Robot(Moveable):
     "Robot will move towards the plunger"
+    solid = True
 
     def __init__(self, x, y, width, height, speed):
         Moveable.__init__(self, x, y, width, height)
         self.speed = speed
-        self.dead = False
 
     def copy(self):
         return Robot(self.x, self.y, self.width, self.height, speed)
@@ -272,15 +278,13 @@ class Robot(Moveable):
                 else:
                     self.move(state, 0, self.speed * cmp(dy, 0))
 
-        if self.dead:
-            return (DELETE,)
-        else:
-            return ()
+        return ()
 
     def collide(self, oth, direction, state, dx, dy):
         if isinstance(oth, Ball):
             self.dead = True
-        return BLOCK
+        if oth.solid:
+            return BLOCK
 
 class Generator(object):
     "Spawns objects when there are fewer than N on the screen"
@@ -333,20 +337,18 @@ class State(object):
     def advance(self, inputs):
         """Returns the state at the next frame and any control requests (sounds,
          quit, etc.)"""
-        to_delete = []
         to_add = []
 
         for obj in self.objects:
             reqs = obj.advance(self, inputs)
             for i in reqs:
-                if i == DELETE:
-                    to_delete.append(obj)
-                elif isinstance(i, tuple):
+                if isinstance(i, tuple):
                     if i[0] == ADD:
                         to_add.append(i[1])
 
-        for obj in to_delete:
-            self.objects.remove(obj)
+        for i in range(len(self.objects)-1, -1, -1):
+            if self.objects[i].dead:
+                self.objects.pop(i)
 
         for obj in to_add:
             self.objects.append(obj)
