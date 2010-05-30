@@ -33,10 +33,16 @@ def main(argv):
     screen = pygame.display.set_mode((602,480))
 
     state = gamelogic.State()
-    state.objects.append(gamelogic.Ball(128, 0, 8, 8))
-    state.objects.append(gamelogic.Plunger(128, 0, 16, 16, gamelogic.UP))
+
+    player = gamelogic.Plunger(128, 0, 16, 16, gamelogic.UP)
+    state.objects.append(player)
+
+    #state.objects.append(gamelogic.Ball(128, 0, 8, 8))
     #state.objects.append(gamelogic.Generator(gamelogic.Robot, 3, 16, 16, 8192, 2, False))
-    #state.objects.append(gamelogic.Generator(gamelogic.Robot, 3, 16, 16, 8192, 2, True))
+    state.objects.append(gamelogic.Generator(gamelogic.Robot, 2, 16, 16, 8192, 2, True))
+
+    for i in range(8, 26, 4):
+        state.objects.append(gamelogic.DaggerBit(player, 3, 3, i))
 
     gameplay.run(screen, state)
 

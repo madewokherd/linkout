@@ -50,6 +50,7 @@ class GameObject(object):
     physical = False    # True if this object has a location in space
     dead = False        # True if this object should be removed before the next frame
     solid = False       # True if this object gets in the way of moving objects
+    player_weapon = 0   # Non-zero weapon power if this is dangerous to enemies
 
     def kill(self):
         self.dead = True
@@ -255,6 +256,8 @@ class Turnable(Moveable):
         self.turn_to_offset(dx, dy)
 
 class Ball(Turnable):
+    player_weapon = 1
+
     def __init__(self, x=0, y=0, width=8, height=8, angle=math.atan(2), speed=4):
         Turnable.__init__(self, x, y, width, height)
         self.speed = speed
@@ -333,7 +336,7 @@ class Plunger(Turnable):
     "Plunger will follow the mouse"
     solid = True
     angle = 0.0
-    turn_radius = 8.0
+    turn_radius = 12.0
 
     def __init__(self, x, y, width, height, direction):
         Moveable.__init__(self, x, y, width, height)
@@ -352,6 +355,25 @@ class Plunger(Turnable):
     def collide(self, oth, direction, state, dx, dy):
         if oth.solid:
             return BLOCK
+
+class DaggerBit(Moveable):
+    player_weapon = 1
+
+    def __init__(self, owner, width, height, distance):
+        Moveable.__init__(self, 0, 0, width, height)
+        self.owner = owner
+        self.distance = distance
+        self.x, self.y = self.ideal_position()
+
+    def ideal_position(self):
+        x = (self.owner.x + self.owner.width / 2) + self.distance * math.cos(self.owner.angle) - self.width / 2
+        y = (self.owner.y + self.owner.height / 2) + self.distance * math.sin(self.owner.angle) - self.height / 2
+        return int(x), int(y)
+
+    def advance(self, state, inputs):
+        x, y = self.ideal_position()
+        self.moveto(state, x, y)
+        return ()
 
 class Robot(Moveable):
     "Robot will move towards the plunger"
@@ -379,7 +401,7 @@ class Robot(Moveable):
         return ()
 
     def collide(self, oth, direction, state, dx, dy):
-        if isinstance(oth, Ball):
+        if oth.player_weapon >= 1:
             self.kill()
         if self.deadly and isinstance(oth, Plunger):
             oth.kill()
