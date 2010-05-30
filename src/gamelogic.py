@@ -390,7 +390,8 @@ class Robot(Moveable):
     def advance(self, state, inputs):
         for obj in state.objects:
             if isinstance(obj, Plunger):
-                dx, dy = self.distance_to_touch(obj)
+                dx = obj.x + obj.width / 2 - self.x - self.width / 2
+                dy = obj.y + obj.height / 2 - self.y - self.height / 2
                 if 0 == dy == dx:
                     return ()
                 elif abs(dx) > abs(dy):
