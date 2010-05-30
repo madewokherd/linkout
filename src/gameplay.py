@@ -150,6 +150,7 @@ def run(screen, state):
     try:
         dx_rem = dy_rem = 0
         buttons_pressed = set()
+        keys_pressed = set()
         paused = False
 
         while 1:
@@ -161,12 +162,15 @@ def run(screen, state):
                 if event.type == pygame.QUIT:
                     return 0
                 elif event.type == pygame.KEYDOWN:
+                    keys_pressed.add(event.key)
                     if event.key == pygame.K_ESCAPE:
                         return 0
                     elif event.key in (pygame.K_PAUSE, pygame.K_p):
                         paused = not paused
                         pygame.mouse.set_visible(paused)
                         pygame.event.set_grab(not paused)
+                elif event.type == pygame.KEYUP:
+                    keys_pressed.remove(event.key)
                 elif event.type == pygame.MOUSEMOTION:
                     dx, dy = event.rel
                     inputs.dx += dx
@@ -175,6 +179,16 @@ def run(screen, state):
                     buttons_pressed.add(event.button)
                 elif event.type == pygame.MOUSEBUTTONUP:
                     buttons_pressed.remove(event.button)
+
+            if pygame.K_w in keys_pressed: inputs.dy -= 6
+            if pygame.K_a in keys_pressed: inputs.dx -= 6
+            if pygame.K_s in keys_pressed: inputs.dy += 6
+            if pygame.K_d in keys_pressed: inputs.dx += 6
+
+            if pygame.K_UP in keys_pressed: inputs.dy -= 6
+            if pygame.K_LEFT in keys_pressed: inputs.dx -= 6
+            if pygame.K_DOWN in keys_pressed: inputs.dy += 6
+            if pygame.K_RIGHT in keys_pressed: inputs.dx += 6
 
             inputs.dx, dx_rem = divmod(inputs.dx * state.width + dx_rem, width)
             inputs.dy, dy_rem = divmod(inputs.dy * state.height + dy_rem, height)
