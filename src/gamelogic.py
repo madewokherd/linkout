@@ -217,6 +217,18 @@ class Moveable(GameObject):
     def collide(self, oth, direction, state, dx, dy):
         pass
 
+def angle_to_offset(dx, dy):
+        try:
+            if dx > 0:
+                return math.atan(dy/dx)
+            else:
+                return math.atan(dy/dx) + math.pi
+        except ZeroDivisionError:
+            if dy < 0:
+                return math.pi * 1.5
+            else:
+                return math.pi * 0.5
+
 class Turnable(Moveable):
 
     def __init__(self, *args):
@@ -224,16 +236,7 @@ class Turnable(Moveable):
         self.angle = 0.0
 
     def turn_to_offset(self, dx, dy):
-        try:
-            if dx > 0:
-                self.angle = math.atan(dy/dx)
-            else:
-                self.angle = math.atan(dy/dx) + math.pi
-        except ZeroDivisionError:
-            if dy > 0:
-                self.angle = math.pi * 1.5
-            else:
-                self.angle = math.pi * 0.5
+        self.angle = angle_to_offset(dx, dy)
 
     def turn_by_offset(self, dx, dy, radius):
         if 0 == dx and 0 == dy:
@@ -253,7 +256,7 @@ class Turnable(Moveable):
 
 class Ball(Turnable):
     def __init__(self, x=0, y=0, width=8, height=8, angle=math.atan(2), speed=4):
-        Moveable.__init__(self, x, y, width, height)
+        Turnable.__init__(self, x, y, width, height)
         self.speed = speed
         self.angle = angle
 
@@ -264,17 +267,9 @@ class Ball(Turnable):
         if 1 in inputs.buttons_pressed:
             for oth in state.objects:
                 if isinstance(oth, Plunger):
-                    dx, dy = self.distance_to_touch(oth)
-                    if 0 == dy == dx:
-                        self.turn_away_from(oth)
-                        return ()
-                    else:
-                        self.turn_to_offset(dx, dy)
-                    newdx = self.speed * math.cos(self.angle)
-                    newdy = self.speed * math.sin(self.angle)
-                    if abs(newdx) > abs(dx) or abs(newdy) > abs(dy):
-                        self.move(state, dx, dy)
-                        return ()
+                    self.x = (oth.x + oth.width/2) - self.width / 2
+                    self.y = (oth.y + oth.height/2) - self.height / 2
+                    return ()
 
         self.move(state, self.speed * math.cos(self.angle), self.speed * math.sin(self.angle))
 
