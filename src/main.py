@@ -30,7 +30,7 @@ import gameplay
 
 def main(argv):
     pygame.init()
-    screen = pygame.display.set_mode((602,480))
+    screen = pygame.display.set_mode((580,480))
 
     state = gamelogic.State()
 
