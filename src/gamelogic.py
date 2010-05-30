@@ -333,7 +333,7 @@ class Plunger(Turnable):
     "Plunger will follow the mouse"
     solid = True
     angle = 0.0
-    turn_radius = 16.0
+    turn_radius = 8.0
 
     def __init__(self, x, y, width, height, direction):
         Moveable.__init__(self, x, y, width, height)
