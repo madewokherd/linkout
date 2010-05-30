@@ -30,10 +30,10 @@ RIGHT = "RIGHT"
 DOWN = "DOWN"
 
 direction_angles = {
-    UP: 0.0,
-    LEFT: math.pi * 1.5,
-    RIGHT: math.pi * 0.5,
-    DOWN: math.pi,
+    UP: math.pi * 0.5,
+    LEFT: math.pi,
+    RIGHT: 0.8,
+    DOWN: math.pi * 1.5,
     }
 
 ABORT = "ABORT"
@@ -67,6 +67,8 @@ RIGHT_EDGE = ScreenEdge("RIGHT")
 
 class Moveable(GameObject):
     physical = True
+    xerror = 0.0
+    yerror = 0.0
 
     def __init__(self, x, y, width, height):
         self.x = x
@@ -158,6 +160,15 @@ class Moveable(GameObject):
         self.y = newy
 
     def move(self, state, dx, dy):
+        if isinstance(dx, float):
+            # FIXME: Is this logic subject to weird floating point errors?
+            dx, self.xerror = divmod(dx+self.xerror, 1.0)
+            dx = int(dx)
+
+        if isinstance(dy, float):
+            dy, self.yerror = divmod(dy+self.yerror, 1.0)
+            dy = int(dy)
+
         steps = max(abs(dx), abs(dy))
 
         x = y = 0
@@ -212,92 +223,76 @@ class Turnable(Moveable):
         Moveable.__init__(self, *args)
         self.angle = 0.0
 
+    def turn_to_offset(self, dx, dy):
+        try:
+            if dx > 0:
+                self.angle = math.atan(dy/dx)
+            else:
+                self.angle = math.atan(dy/dx) + math.pi
+        except ZeroDivisionError:
+            if dy > 0:
+                self.angle = math.pi * 1.5
+            else:
+                self.angle = math.pi * 0.5
+
     def turn_by_offset(self, dx, dy, radius):
         if 0 == dx and 0 == dy:
             return
-        x = radius * math.sin(self.angle)
-        y = radius * math.cos(self.angle)
+        x = radius * math.cos(self.angle)
+        y = radius * math.sin(self.angle)
         x = x + dx
         y = y + dy
-        if 0 == x and 0 == y:
+        if 0 == dx and 0 == dy:
             return
-        try:
-            if y > 0:
-                self.angle = math.atan(x/y)
-            else:
-                self.angle = math.atan(x/y) + math.pi
-        except ZeroDivisionError:
-            if x > 0:
-                self.angle = math.pi * 0.5
-            else:
-                self.angle = math.pi * 1.5
-                
+        self.turn_to_offset(x, y)
 
-class Ball(Moveable):
-    def __init__(self, x=0, y=0, width=8, height=8, dx=2, dy=4):
+    def turn_away_from(self, oth):
+        dx = (self.x + self.width/2) - (oth.x + oth.width/2)
+        dy = (self.y + self.height/2) - (oth.y + oth.height/2)
+        self.turn_to_offset(dx, dy)
+
+class Ball(Turnable):
+    def __init__(self, x=0, y=0, width=8, height=8, angle=math.atan(2), speed=4):
         Moveable.__init__(self, x, y, width, height)
-        self.dx = dx
-        self.dy = dy
+        self.speed = speed
+        self.angle = angle
 
     def copy(self):
-        return Ball(self.x, self.y, self.width, self.height, self.dx, self.dy)
+        return Ball(self.x, self.y, self.width, self.height, self.dx, self.dy, self.speed)
 
     def advance(self, state, inputs):
         if 1 in inputs.buttons_pressed:
             for oth in state.objects:
                 if isinstance(oth, Plunger):
-                    speed = max(abs(self.dx), abs(self.dy))
                     dx, dy = self.distance_to_touch(oth)
                     if 0 == dy == dx:
-                        self.move_away_from(oth)
-                        return ()
-                    elif abs(dx) > abs(dy):
-                        speed = min(speed, abs(dx))
-                        newdx = speed * cmp(dx, 0)
-                        newdy = (dy * speed // abs(dx))
-                    else:
-                        speed = min(speed, abs(dy))
-                        newdy = speed * cmp(dy, 0)
-                        newdx = (dx * speed // abs(dy))
-                    if speed != max(abs(self.dx), abs(self.dy)):
-                        self.move(state, newdx, newdy)
+                        self.turn_away_from(oth)
                         return ()
                     else:
-                        self.dx = newdx
-                        self.dy = newdy
+                        self.turn_to_offset(dx, dy)
+                    newdx = self.speed * math.cos(self.angle)
+                    newdy = self.speed * math.sin(self.angle)
+                    if abs(newdx) > abs(dx) or abs(newdy) > abs(dy):
+                        self.move(state, dx, dy)
+                        return ()
 
-        self.move(state, self.dx, self.dy)
+        self.move(state, self.speed * math.cos(self.angle), self.speed * math.sin(self.angle))
 
         return ()
 
-    def move_away_from(self, oth):
-        speed = max(abs(self.dx), abs(self.dy))
-        dx = (self.x + self.width/2) - (oth.x + oth.width/2)
-        dy = (self.y + self.height/2) - (oth.y + oth.height/2)
-        if 0 == dy == dx:
-            return
-        elif abs(dx) > abs(dy):
-            self.dx = speed * cmp(dx, 0)
-            self.dy = (dy * speed // abs(dx))
-        else:
-            self.dy = speed * cmp(dy, 0)
-            self.dx = (dx * speed // abs(dy))
-
     def collide(self, oth, direction, state, dx, dy):
         if isinstance(oth, Plunger):
-            self.move_away_from(oth)
-            return ABORT
+            #self.turn_away_from(oth)
+            #return ABORT
+            self.angle = oth.angle
         elif oth.solid:
-            if direction == LEFT:
-                self.dx = abs(self.dx)
-            elif direction == RIGHT:
-                self.dx = -abs(self.dx)
-            elif direction == UP:
-                self.dy = abs(self.dy)
-            elif direction == DOWN:
-                self.dy = -abs(self.dy)
-            if isinstance(oth, ScreenEdge):
-                return ABORT
+            if (direction == LEFT and math.cos(self.angle) < 0) or\
+               (direction == RIGHT and math.cos(self.angle) > 0):
+                self.angle = math.pi - self.angle
+            elif (direction == UP and math.sin(self.angle) < 0) or\
+                 (direction == DOWN and math.sin(self.angle) > 0):
+                self.angle = math.pi*2 - self.angle
+            return ABORT
 
 class Plunger(Turnable):
     "Plunger will follow the mouse"

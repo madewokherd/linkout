@@ -69,10 +69,10 @@ def draw_plunger(surface, state, obj):
     sin_angle = math.sin(obj.angle)
     cos_angle = math.cos(obj.angle)
 
-    tip = (int(x_center+x_mult*sin_angle), int(y_center+y_mult*cos_angle))
-    back = (int(x_center-x_mult*sin_angle), int(y_center-y_mult*cos_angle))
-    side1 = (int(x_center+x_mult*cos_angle*0.8), int(y_center-y_mult*sin_angle*0.8))
-    side2 = (int(x_center-x_mult*cos_angle*0.8), int(y_center+y_mult*sin_angle*0.8))
+    tip = (int(x_center+x_mult*cos_angle), int(y_center+y_mult*sin_angle))
+    back = (int(x_center-x_mult*cos_angle), int(y_center-y_mult*sin_angle))
+    side1 = (int(x_center+x_mult*sin_angle*0.8), int(y_center-y_mult*cos_angle*0.8))
+    side2 = (int(x_center-x_mult*sin_angle*0.8), int(y_center+y_mult*cos_angle*0.8))
 
     thickness = width / state.width
 
