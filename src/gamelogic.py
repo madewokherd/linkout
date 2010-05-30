@@ -295,6 +295,40 @@ class FairyBall(Ball):
         else:
             Ball.collide(self, oth, direction, state, dx, dy)
 
+class Boomerang(Ball):
+    caught = None
+    uncaught = None
+
+    def advance(self, state, inputs):
+        if self.caught:
+            if 1 in inputs.buttons_pressed:
+                self.uncaught = self.caught
+                self.caught = None
+            else:
+                self.x = (self.caught.x + self.caught.width/2) - self.width / 2
+                self.y = (self.caught.y + self.caught.height/2) - self.height / 2
+                return ()
+
+        if self.uncaught:
+            dx, dy = self.distance_to_touch(self.uncaught)
+            if dx != 0 or dy != 0:
+                self.uncaught = None
+
+        return Ball.advance(self, state, inputs)
+
+    def collide(self, oth, direction, state, dx, dy):
+        if isinstance(oth, Plunger):
+            self.angle = oth.angle
+            if oth is not self.uncaught:
+                self.caught = oth
+        elif oth.solid:
+            if (direction == LEFT and math.cos(self.angle) < 0) or\
+               (direction == RIGHT and math.cos(self.angle) > 0) or \
+               (direction == UP and math.sin(self.angle) < 0) or \
+               (direction == DOWN and math.sin(self.angle) > 0):
+                self.angle = self.angle + math.pi
+            return ABORT
+
 class Plunger(Turnable):
     "Plunger will follow the mouse"
     solid = True
