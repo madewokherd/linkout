@@ -346,7 +346,8 @@ class Plunger(Turnable):
         return Plunger(self.x, self.y, self.width, self.height, direction)
 
     def advance(self, state, inputs):
-        self.move(state, inputs.dx, inputs.dy)
+        if 3 not in inputs.buttons_pressed:
+            self.move(state, inputs.dx, inputs.dy)
 
         if 1 not in inputs.buttons_pressed:
             self.turn_by_offset(inputs.dx, inputs.dy, self.turn_radius)
