@@ -264,23 +264,12 @@ class Ball(Turnable):
         return Ball(self.x, self.y, self.width, self.height, self.dx, self.dy, self.speed)
 
     def advance(self, state, inputs):
-        if 1 in inputs.buttons_pressed:
-            for oth in state.objects:
-                if isinstance(oth, Plunger):
-                    self.x = (oth.x + oth.width/2) - self.width / 2
-                    self.y = (oth.y + oth.height/2) - self.height / 2
-                    return ()
-
         self.move(state, self.speed * math.cos(self.angle), self.speed * math.sin(self.angle))
 
         return ()
 
     def collide(self, oth, direction, state, dx, dy):
-        if isinstance(oth, Plunger):
-            #self.turn_away_from(oth)
-            #return ABORT
-            self.angle = oth.angle
-        elif oth.solid:
+        if oth.solid:
             if (direction == LEFT and math.cos(self.angle) < 0) or\
                (direction == RIGHT and math.cos(self.angle) > 0):
                 self.angle = math.pi - self.angle
@@ -288,6 +277,23 @@ class Ball(Turnable):
                  (direction == DOWN and math.sin(self.angle) > 0):
                 self.angle = math.pi*2 - self.angle
             return ABORT
+
+class FairyBall(Ball):
+    def advance(self, state, inputs):
+        if 1 in inputs.buttons_pressed:
+            for oth in state.objects:
+                if isinstance(oth, Plunger):
+                    self.x = (oth.x + oth.width/2) - self.width / 2
+                    self.y = (oth.y + oth.height/2) - self.height / 2
+                    return ()
+
+        return Ball.advance(self, state, inputs)
+
+    def collide(self, oth, direction, state, dx, dy):
+        if isinstance(oth, Plunger):
+            self.angle = oth.angle
+        else:
+            Ball.collide(self, oth, direction, state, dx, dy)
 
 class Plunger(Turnable):
     "Plunger will follow the mouse"
