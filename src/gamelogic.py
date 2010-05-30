@@ -21,12 +21,20 @@
 # FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 # OTHER DEALINGS IN THE SOFTWARE.
 
+import math
 import random
 
 UP = "UP"
 LEFT = "LEFT"
 RIGHT = "RIGHT"
 DOWN = "DOWN"
+
+direction_angles = {
+    UP: 0.0,
+    LEFT: math.pi * 1.5,
+    RIGHT: math.pi * 0.5,
+    DOWN: math.pi,
+    }
 
 ABORT = "ABORT"
 BLOCK = "BLOCK"
@@ -198,6 +206,33 @@ class Moveable(GameObject):
     def collide(self, oth, direction, state, dx, dy):
         pass
 
+class Turnable(Moveable):
+
+    def __init__(self, *args):
+        Moveable.__init__(self, *args)
+        self.angle = 0.0
+
+    def turn_by_offset(self, dx, dy, radius):
+        if 0 == dx and 0 == dy:
+            return
+        x = radius * math.sin(self.angle)
+        y = radius * math.cos(self.angle)
+        x = x + dx
+        y = y + dy
+        if 0 == x and 0 == y:
+            return
+        try:
+            if y > 0:
+                self.angle = math.atan(x/y)
+            else:
+                self.angle = math.atan(x/y) + math.pi
+        except ZeroDivisionError:
+            if x > 0:
+                self.angle = math.pi * 0.5
+            else:
+                self.angle = math.pi * 1.5
+                
+
 class Ball(Moveable):
     def __init__(self, x=0, y=0, width=8, height=8, dx=2, dy=4):
         Moveable.__init__(self, x, y, width, height)
@@ -264,19 +299,23 @@ class Ball(Moveable):
             if isinstance(oth, ScreenEdge):
                 return ABORT
 
-class Plunger(Moveable):
+class Plunger(Turnable):
     "Plunger will follow the mouse"
     solid = True
+    angle = 0.0
+    turn_radius = 16.0
 
     def __init__(self, x, y, width, height, direction):
         Moveable.__init__(self, x, y, width, height)
-        self.direction = direction
+        self.angle = direction_angles[direction]
 
     def copy(self):
         return Plunger(self.x, self.y, self.width, self.height, direction)
 
     def advance(self, state, inputs):
         self.move(state, inputs.dx, inputs.dy)
+
+        self.turn_by_offset(inputs.dx, inputs.dy, self.turn_radius)
 
         return ()
 

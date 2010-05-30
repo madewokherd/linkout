@@ -21,6 +21,8 @@
 # FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 # OTHER DEALINGS IN THE SOFTWARE.
 
+import math
+
 import pygame
 
 import gamelogic
@@ -58,31 +60,19 @@ def draw_plunger(surface, state, obj):
 
     rect = pygame.Rect(left, top, right-left, bottom-top)
 
-    left_pt = (left, (top+bottom)/2)
-    right_pt = (right, (top+bottom)/2)
-    top_pt = ((left+right)/2, top)
-    bottom_pt = ((left+right)/2, bottom)
+    x_center = (left+right)/2
+    x_mult = (right-left)/2
 
-    if obj.direction == gamelogic.UP:
-        tip = top_pt
-        back = bottom_pt
-        side1 = left_pt
-        side2 = right_pt
-    elif obj.direction == gamelogic.DOWN:
-        tip = bottom_pt
-        back = up_pt
-        side1 = left_pt
-        side2 = right_pt
-    elif obj.direction == gamelogic.LEFT:
-        tip = left_pt
-        back = right_pt
-        side1 = top_pt
-        side2 = bottom_pt
-    elif obj.direction == gamelogic.DOWN:
-        tip = right_pt
-        back = left_pt
-        side1 = top_pt
-        side2 = bottom_pt
+    y_center = (top+bottom)/2
+    y_mult = (bottom-top)/2
+
+    sin_angle = math.sin(obj.angle)
+    cos_angle = math.cos(obj.angle)
+
+    tip = (int(x_center+x_mult*sin_angle), int(y_center+y_mult*cos_angle))
+    back = (int(x_center-x_mult*sin_angle), int(y_center-y_mult*cos_angle))
+    side1 = (int(x_center+x_mult*cos_angle*0.8), int(y_center-y_mult*sin_angle*0.8))
+    side2 = (int(x_center-x_mult*cos_angle*0.8), int(y_center+y_mult*sin_angle*0.8))
 
     thickness = width / state.width
 
