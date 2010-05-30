@@ -39,7 +39,7 @@ def main(argv):
 
     #state.objects.append(gamelogic.Ball(128, 0, 8, 8))
     #state.objects.append(gamelogic.Generator(gamelogic.Robot, 3, 16, 16, 12544, 2, False))
-    state.objects.append(gamelogic.Generator(gamelogic.Robot, 3, 16, 16, 12544, 2, True))
+    state.objects.append(gamelogic.EscalatingGenerator(gamelogic.Robot, 0, 750, 16, 16, 12544, 2, True))
 
     for i in range(8, 26, 4):
         state.objects.append(gamelogic.DaggerBit(player, 3, 3, i))

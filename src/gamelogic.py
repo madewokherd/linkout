@@ -442,6 +442,23 @@ class Generator(GameObject):
 
         return ()
 
+class EscalatingGenerator(Generator):
+    "Spawns objects when there are fewer than N on the screen. N increases as time goes on."
+
+    def __init__(self, obj_type, max_objects, escalation_time, width, height, min_distance_sq, *args):
+        Generator.__init__(self, obj_type, max_objects, width, height, min_distance_sq, *args)
+        self.escalation_time = escalation_time
+        self.time_since_escalation = 0
+
+    def advance(self, state, inputs):
+        self.time_since_escalation += 1
+
+        if self.time_since_escalation >= self.escalation_time:
+            self.time_since_escalation = 0
+            self.max_objects += 1
+
+        return Generator.advance(self, state, inputs)
+
 class State(object):
     "This object represents the state of the game at a frame."
 
