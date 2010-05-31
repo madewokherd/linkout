@@ -21,30 +21,63 @@
 # FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 # OTHER DEALINGS IN THE SOFTWARE.
 
+import os
 import sys
 import xml.sax
 import xml.sax.handler
+
+import pygame
 
 import gamelogic
 
 DEBUG = False
 
+class TileSet(object):
+    def __init__(self, tilewidth, tileheight, image):
+        self.width = tilewidth
+        self.height = tileheight
+        self.image = image
+        self.tiles = {}
+
+    @staticmethod
+    def from_source(source, tilewidth, tileheight):
+        image = pygame.image.load(source)
+        result = TileSet(tilewidth, tileheight, image)
+
 class MapContentHandler(xml.sax.handler.ContentHandler):
     def startDocument(self):
         self.tilesets = {}
         self.layers = {}
+        self.mapattrs = {}
+        self.intileset = False
+        self.inlayer = False
 
-def loadobj(f):
-    xmlhandler = MapContentHandler()
+    def startElement(self, name, attrs):
+        if name == 'map':
+            self.mapattrs = attrs
+            if DEBUG:
+                print "start of map"
+        elif name == 'tileset':
+            self.intileset = True
+            self.tilesetattrs = attrs
+        elif name == 'image' and self.intileset:
+            self.tilesetimage = attrs['source']
 
-    xml.sax.parse(f, xmlhandler)
+    def endElement(self, name):
+        if name == 'tileset' and self.intileset:
+            source = os.path.normpath(os.path.join(os.path.dirname(self.filename), self.tilesetimage))
+            if DEBUG:
+                print "found tileset: source=%s" % source
+            self.tilesets[self.tilesetattrs['firstgid']] = TileSet.from_source(
+                source, self.tilesetattrs['tilewidth'], self.tilesetattrs['tileheight'])
 
 def load(filename):
-    f = open(filename, 'rb')
-    try:
-        return loadobj(f)
-    finally:
-        f.close()
+    filename = os.path.abspath(filename)
+
+    xmlhandler = MapContentHandler()
+    xmlhandler.filename = filename
+
+    xml.sax.parse(filename, xmlhandler)
 
 def main(argv):
     global DEBUG
