@@ -28,9 +28,19 @@ import xml.sax.handler
 
 import pygame
 
+import iniformat
 import gamelogic
 
 DEBUG = False
+
+def parse_range(string):
+    for item in string.split(','):
+        if '-' in item:
+            low, high = item.split('-')
+            for i in range(int(low), int(high)+1):
+                yield i
+        else:
+            yield int(item)
 
 class TileSet(object):
     def __init__(self, tilewidth, tileheight, image):
@@ -39,10 +49,24 @@ class TileSet(object):
         self.image = image
         self.tiles = {}
 
+    def read_tile_info(self, filename):
+        for section_name, section in iniformat.read(filename):
+            real_values = {}
+            for key, value in section.iteritems():
+                real_values[key] = eval(value, gamelogic.__dict__)
+            for index in parse_range(section_name):
+                if index not in self.tiles:
+                    self.tiles[index] = {}
+                self.tiles[index].update(real_values)
+
     @staticmethod
     def from_source(source, tilewidth, tileheight):
         image = pygame.image.load(source)
         result = TileSet(tilewidth, tileheight, image)
+        result.read_tile_info(source+'.ini')
+        if DEBUG:
+            print "tile info for %s: %s" % (source, repr(result.tiles))
+        return result
 
 class MapContentHandler(xml.sax.handler.ContentHandler):
     def startDocument(self):

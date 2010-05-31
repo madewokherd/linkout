@@ -67,6 +67,15 @@ BOTTOM_EDGE = ScreenEdge("BOTTOM")
 LEFT_EDGE = ScreenEdge("LEFT")
 RIGHT_EDGE = ScreenEdge("RIGHT")
 
+class Tile(GameObject):
+    physical = True
+
+class Ground(Tile):
+    pass
+
+class Wall(Tile):
+    solid = True
+
 class Moveable(GameObject):
     physical = True
     xerror = 0.0
