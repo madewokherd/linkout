@@ -51,6 +51,7 @@ class GameObject(object):
     dead = False        # True if this object should be removed before the next frame
     solid = False       # True if this object gets in the way of moving objects
     player_weapon = 0   # Non-zero weapon power if this is dangerous to enemies
+    sprite = None       # Not used by this module, may be a pixmap to draw this
 
     def kill(self):
         self.dead = True
@@ -218,6 +219,10 @@ class Moveable(GameObject):
     def collide(self, oth, direction, state, dx, dy):
         pass
 
+class ForegroundWall(Moveable):
+    physical = True
+    solid = True
+
 def angle_to_offset(dx, dy):
         try:
             if dx > 0:
@@ -338,7 +343,7 @@ class Plunger(Turnable):
     angle = 0.0
     turn_radius = 12.0
 
-    def __init__(self, x, y, width, height, direction):
+    def __init__(self, x, y, width, height, direction=UP):
         Moveable.__init__(self, x, y, width, height)
         self.angle = direction_angles[direction]
 
